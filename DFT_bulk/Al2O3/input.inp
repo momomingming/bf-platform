@@ -1,0 +1,119 @@
+&GLOBAL
+  PROJECT Al2O3_bulk_opt
+  RUN_TYPE GEO_OPT
+  PRINT_LEVEL MEDIUM
+&END GLOBAL
+
+&FORCE_EVAL
+  METHOD Quickstep
+  &DFT
+    BASIS_SET_FILE_NAME BASIS_MOLOPT
+    POTENTIAL_FILE_NAME GTH_POTENTIALS
+    
+    &MGRID
+      CUTOFF 450
+      REL_CUTOFF 60
+    &END MGRID
+    &QS
+      METHOD GPW
+      EPS_DEFAULT 1.0E-12
+    &END QS
+    &SCF
+      SCF_GUESS ATOMIC
+      EPS_SCF 1.0E-6
+      MAX_SCF 100
+      MAX_DIIS 7
+      &DIAGONALIZATION
+        ALGORITHM STANDARD
+      &END DIAGONALIZATION
+      &MIXING
+        METHOD BROYDEN_MIXING
+        ALPHA 0.4
+        NBROYDEN 8
+      &END MIXING
+    &END SCF
+    &XC
+      &XC_FUNCTIONAL PBE
+      &END XC_FUNCTIONAL
+      &VDW_POTENTIAL
+        POTENTIAL_TYPE PAIR_POTENTIAL
+        &PAIR_POTENTIAL
+          PARAMETER_FILE_NAME dftd3.dat
+          TYPE DFTD3(BJ)
+          REFERENCE_FUNCTIONAL PBE
+        &END PAIR_POTENTIAL
+      &END VDW_POTENTIAL
+    &END XC
+    &KPOINTS
+      SCHEME MONKHORST-PACK 3 3 2
+    &END KPOINTS
+  &END DFT
+  &SUBSYS
+    &CELL
+      A     4.759000     0.000000     0.000000
+      B    -2.379500     4.121415     0.000000
+      C     0.000000     0.000000    12.991000
+      PERIODIC XYZ
+    &END CELL
+    &COORD
+      Al     -0.000000      2.747610      6.740597
+      Al      0.000000      0.000000     11.070930
+      Al      2.379500      1.373805      8.905764
+      Al      0.000000      0.000000      1.920070
+      Al      0.000000      0.000000      4.575430
+      Al      0.000000      0.000000      8.415570
+      Al     -0.000000      2.747610      4.085236
+      Al      2.379500      1.373805      6.250403
+      Al      2.379500      1.373805     12.745903
+      Al      2.379500      1.373805      2.410264
+      Al     -0.000000      2.747610      0.245097
+      Al     -0.000000      2.747610     10.580736
+      O     -1.458158      2.747610      5.412917
+      O      0.729079      1.262802      9.743250
+      O      3.300842      0.000000      9.743250
+      O      3.837658      1.373805      7.578083
+      O     -0.729079      1.262802      3.247750
+      O      1.650421      2.858613      3.247750
+      O      1.458158      0.000000      3.247750
+      O      0.729079      1.484808      5.412917
+      O      0.729079      4.010411      5.412917
+      O     -1.650421      2.858613      9.743250
+      O      1.650421      2.636606      7.578083
+      O      1.650421      0.111003      7.578083
+      O      0.921342      1.373805      1.082583
+      O      3.108579      0.111003      1.082583
+      O      3.108579      2.636606      1.082583
+      O      1.458158      2.747610     11.908417
+      O     -0.729079      4.010411     11.908417
+      O     -0.729079      1.484808     11.908417
+    &END COORD
+    &KIND Al
+      ELEMENT Al
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q3
+    &END KIND
+    &KIND O
+      ELEMENT O
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q6
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+  &GEO_OPT
+    OPTIMIZER BFGS
+    MAX_ITER 300
+    MAX_DR 3.0E-3
+    MAX_FORCE 4.5E-4
+    RMS_DR 1.5E-3
+    RMS_FORCE 3.0E-4
+  &END GEO_OPT
+  &PRINT
+    &TRAJECTORY
+      &EACH
+        GEO_OPT 1
+      &END EACH
+    &END TRAJECTORY
+  &END PRINT
+&END MOTION

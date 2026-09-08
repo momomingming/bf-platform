@@ -1,0 +1,433 @@
+[
+  {
+    "name": "CeO₂",
+    "bf_binding_kJ": 331.0,
+    "ps_ads_eV": 2.51,
+    "thermal_score": 1.0,
+    "shuttle": 0.095,
+    "composite": 0.7119,
+    "bond_types": [
+      "Ce-O-Si(415)",
+      "Ce-O-Al(402)",
+      "Ce-O-Fe(388)"
+    ],
+    "thermal_limit": 1200,
+    "coating_methods": [
+      "浸渍-煅烧",
+      "水热法",
+      "溶胶-凝胶"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -2.25,
+      "Li2S4": -2.78,
+      "Li2S6": -2.55,
+      "Li2S8": -2.15
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.52,
+      "Li2S4": -3.05,
+      "Li2S6": -2.82,
+      "Li2S8": -2.38
+    }
+  },
+  {
+    "name": "MnO₂",
+    "bf_binding_kJ": 317.3,
+    "ps_ads_eV": 2.696,
+    "thermal_score": 0.757,
+    "shuttle": 0.066,
+    "composite": 0.7087,
+    "bond_types": [
+      "Mn-O-Si(398)",
+      "Mn-O-Al(385)",
+      "Mn-O-Fe(372)"
+    ],
+    "thermal_limit": 530,
+    "coating_methods": [
+      "水热法",
+      "电沉积",
+      "化学浴沉积"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -2.65,
+      "Li2S4": -3.12,
+      "Li2S6": -2.88,
+      "Li2S8": -2.45
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.38,
+      "Li2S4": -2.85,
+      "Li2S6": -2.62,
+      "Li2S8": -2.2
+    }
+  },
+  {
+    "name": "TiO₂",
+    "bf_binding_kJ": 366.8,
+    "ps_ads_eV": 2.161,
+    "thermal_score": 1.0,
+    "shuttle": 0.104,
+    "composite": 0.6886,
+    "bond_types": [
+      "Ti-O-Si(466)",
+      "Ti-O-Al(438)",
+      "Ti-O-Fe(412)"
+    ],
+    "thermal_limit": 800,
+    "coating_methods": [
+      "溶胶-凝胶",
+      "水热法",
+      "ALD"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -1.85,
+      "Li2S4": -2.42,
+      "Li2S6": -2.18,
+      "Li2S8": -1.95
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.1,
+      "Li2S4": -2.68,
+      "Li2S6": -2.35,
+      "Li2S8": -2.08
+    }
+  },
+  {
+    "name": "CoS₂",
+    "bf_binding_kJ": 153.9,
+    "ps_ads_eV": 2.718,
+    "thermal_score": 0.929,
+    "shuttle": 0.06,
+    "composite": 0.6706,
+    "bond_types": [
+      "Mo-S-Si(285)"
+    ],
+    "thermal_limit": 650,
+    "coating_methods": [
+      "水热法",
+      "硫化法",
+      "电沉积"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -2.55,
+      "Li2S4": -3.08,
+      "Li2S6": -2.82,
+      "Li2S8": -2.42
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.55,
+      "Li2S4": -3.08,
+      "Li2S6": -2.82,
+      "Li2S8": -2.42
+    }
+  },
+  {
+    "name": "V₂O₅",
+    "bf_binding_kJ": 214.9,
+    "ps_ads_eV": 2.375,
+    "thermal_score": 0.986,
+    "shuttle": 0.071,
+    "composite": 0.6694,
+    "bond_types": [
+      "Mn-O-Si(398)"
+    ],
+    "thermal_limit": 690,
+    "coating_methods": [
+      "溶胶-凝胶",
+      "水热法",
+      "磁控溅射"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -2.18,
+      "Li2S4": -2.72,
+      "Li2S6": -2.48,
+      "Li2S8": -2.12
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.18,
+      "Li2S4": -2.72,
+      "Li2S6": -2.48,
+      "Li2S8": -2.12
+    }
+  },
+  {
+    "name": "Al₂O₃",
+    "bf_binding_kJ": 347.7,
+    "ps_ads_eV": 1.675,
+    "thermal_score": 1.0,
+    "shuttle": 0.085,
+    "composite": 0.6612,
+    "bond_types": [
+      "Al-O-Si(502)",
+      "Al-O-Al(511)"
+    ],
+    "thermal_limit": 2050,
+    "coating_methods": [
+      "ALD",
+      "溶胶-凝胶",
+      "浸渍"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -1.45,
+      "Li2S4": -1.92,
+      "Li2S6": -1.78,
+      "Li2S8": -1.55
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -1.45,
+      "Li2S4": -1.92,
+      "Li2S6": -1.78,
+      "Li2S8": -1.55
+    }
+  },
+  {
+    "name": "TiN",
+    "bf_binding_kJ": 167.4,
+    "ps_ads_eV": 2.603,
+    "thermal_score": 1.0,
+    "shuttle": 0.091,
+    "composite": 0.6431,
+    "bond_types": [
+      "Ti-N-Si(310)"
+    ],
+    "thermal_limit": 2950,
+    "coating_methods": [
+      "磁控溅射",
+      "CVD",
+      "浸渍-氮化"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -2.35,
+      "Li2S4": -2.88,
+      "Li2S6": -2.65,
+      "Li2S8": -2.28
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.58,
+      "Li2S4": -3.12,
+      "Li2S6": -2.85,
+      "Li2S8": -2.45
+    }
+  },
+  {
+    "name": "MoS₂",
+    "bf_binding_kJ": 340.2,
+    "ps_ads_eV": 1.855,
+    "thermal_score": 1.0,
+    "shuttle": 0.125,
+    "composite": 0.6228,
+    "bond_types": [
+      "Mo-S-Si(285)",
+      "Mo-O-Si(345)"
+    ],
+    "thermal_limit": 1185,
+    "coating_methods": [
+      "水热法",
+      "CVD",
+      "液相剥离+浸渍"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -1.15,
+      "Li2S4": -1.58,
+      "Li2S6": -1.42,
+      "Li2S8": -1.22
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.85,
+      "Li2S4": -3.45,
+      "Li2S6": -3.18,
+      "Li2S8": -2.72
+    }
+  },
+  {
+    "name": "Fe₂O₃",
+    "bf_binding_kJ": 261.9,
+    "ps_ads_eV": 1.882,
+    "thermal_score": 1.0,
+    "shuttle": 0.103,
+    "composite": 0.6136,
+    "bond_types": [
+      "Fe-O-Si(395)",
+      "Fe-O-Fe(405)"
+    ],
+    "thermal_limit": 1565,
+    "coating_methods": [
+      "浸渍-煅烧",
+      "水热法",
+      "电沉积"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -1.68,
+      "Li2S4": -2.15,
+      "Li2S6": -1.98,
+      "Li2S8": -1.72
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -1.68,
+      "Li2S4": -2.15,
+      "Li2S6": -1.98,
+      "Li2S8": -1.72
+    }
+  },
+  {
+    "name": "MXene(Ti₃C₂)",
+    "bf_binding_kJ": 172.8,
+    "ps_ads_eV": 2.65,
+    "thermal_score": 0.571,
+    "shuttle": 0.114,
+    "composite": 0.5353,
+    "bond_types": [
+      "MXene-Si(320)"
+    ],
+    "thermal_limit": 400,
+    "coating_methods": [
+      "真空抽滤",
+      "浸渍涂覆",
+      "喷涂"
+    ],
+    "cost": "高",
+    "ps_ads_detail": {
+      "Li2S": -2.45,
+      "Li2S4": -3.02,
+      "Li2S6": -2.78,
+      "Li2S8": -2.35
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.45,
+      "Li2S4": -3.02,
+      "Li2S6": -2.78,
+      "Li2S8": -2.35
+    }
+  },
+  {
+    "name": "GO(氧化石墨烯)",
+    "bf_binding_kJ": 347.2,
+    "ps_ads_eV": 1.72,
+    "thermal_score": 0.286,
+    "shuttle": 0.077,
+    "composite": 0.5319,
+    "bond_types": [
+      "C-O-Si(GO)(358)",
+      "C-OH-Si(GO)(285)"
+    ],
+    "thermal_limit": 200,
+    "coating_methods": [
+      "浸渍涂覆",
+      "真空抽滤",
+      "喷涂"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -1.25,
+      "Li2S4": -1.72,
+      "Li2S6": -1.55,
+      "Li2S8": -1.32
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -2.15,
+      "Li2S4": -2.68,
+      "Li2S6": -2.42,
+      "Li2S8": -2.05
+    }
+  },
+  {
+    "name": "g-C₃N₄",
+    "bf_binding_kJ": 113.4,
+    "ps_ads_eV": 2.14,
+    "thermal_score": 0.857,
+    "shuttle": 0.132,
+    "composite": 0.4966,
+    "bond_types": [
+      "g-C3N4-Si(210)"
+    ],
+    "thermal_limit": 600,
+    "coating_methods": [
+      "超声剥离+浸渍",
+      "旋涂",
+      "原位聚合"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -1.95,
+      "Li2S4": -2.48,
+      "Li2S6": -2.25,
+      "Li2S8": -1.88
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -1.95,
+      "Li2S4": -2.48,
+      "Li2S6": -2.25,
+      "Li2S8": -1.88
+    }
+  },
+  {
+    "name": "SiO₂",
+    "bf_binding_kJ": 244.1,
+    "ps_ads_eV": 1.042,
+    "thermal_score": 1.0,
+    "shuttle": 0.194,
+    "composite": 0.4189,
+    "bond_types": [
+      "Si-O-Si(452)"
+    ],
+    "thermal_limit": 1710,
+    "coating_methods": [
+      "溶胶-凝胶",
+      "Stöber法",
+      "ALD"
+    ],
+    "cost": "低",
+    "ps_ads_detail": {
+      "Li2S": -0.85,
+      "Li2S4": -1.25,
+      "Li2S6": -1.12,
+      "Li2S8": -0.95
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -0.85,
+      "Li2S4": -1.25,
+      "Li2S6": -1.12,
+      "Li2S8": -0.95
+    }
+  },
+  {
+    "name": "PDA(聚多巴胺)",
+    "bf_binding_kJ": 32.4,
+    "ps_ads_eV": 2.042,
+    "thermal_score": 0.429,
+    "shuttle": 0.094,
+    "composite": 0.4095,
+    "bond_types": [
+      "N-H...O-Si(PDA)(25)",
+      "catechol-Si(PDA)(35)"
+    ],
+    "thermal_limit": 300,
+    "coating_methods": [
+      "自聚合(Tris缓冲液pH=8.5)",
+      "电聚合",
+      "氧化聚合"
+    ],
+    "cost": "中",
+    "ps_ads_detail": {
+      "Li2S": -1.85,
+      "Li2S4": -2.35,
+      "Li2S6": -2.15,
+      "Li2S8": -1.82
+    },
+    "ps_ads_edge_detail": {
+      "Li2S": -1.85,
+      "Li2S4": -2.35,
+      "Li2S6": -2.15,
+      "Li2S8": -1.82
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "completed": {
+    "Al2O3_bulk_Ha": -315.74779026120734,
+    "Al2O3_surface_001_Ha": -315.5562038014559,
+    "Li2S_mol_Ha": -24.89603186597706
+  },
+  "md_melt_quench": {
+    "final_density_g_cm3": 2.66,
+    "final_temperature_K": 300,
+    "status": "completed"
+  }
+}

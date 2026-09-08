@@ -1,0 +1,49 @@
+{
+  "adsorption_energies_eV": {
+    "SiO2_Li2S": -4.733912835199768,
+    "SiO2_Li2S4": -170.64268939999906,
+    "SiO2_Li2S6": -256.22254239999916,
+    "Al2O3_Li2S4": -183.64418747440095,
+    "Al2O3_Li2S6": -244.76099187440101
+  },
+  "total_energies_Ha": {
+    "Al2O3_bulk": -315.74779,
+    "SiO2_surface_001": -240.122,
+    "Al2O3_surface_001": -315.556204,
+    "Li2S_mol": -24.896032,
+    "Li2S4_mol": -49.043,
+    "Li2S6_mol": -66.475,
+    "SiO2_Li2S": -265.192,
+    "SiO2_Li2S4": -295.436,
+    "SiO2_Li2S6": -316.013,
+    "Al2O3_Li2S4": -371.348,
+    "Al2O3_Li2S6": -391.026
+  },
+  "md_results": {
+    "amorphous_density_g_cm3": 2.66,
+    "final_potential_energy_eV": -2337.8,
+    "n_atoms": 200,
+    "thermal_stability": "stable at 300K"
+  },
+  "electronic_structure": {
+    "SiO2_mulliken": {
+      "Si": "+0.41",
+      "O": "-0.41"
+    },
+    "Al2O3_bulk_energy_Ha": -315.748
+  },
+  "adsorption_energies_eV_corrected": {
+    "SiO2_Li2S": -4.734,
+    "SiO2_Li2S4": "ERRONEOUS (-170.6 eV, likely total energy not properly referenced)",
+    "SiO2_Li2S6": "ERRONEOUS (-256.2 eV, likely total energy not properly referenced)",
+    "Al2O3_Li2S": "MISSING (calculation not converged)",
+    "Al2O3_Li2S4": "ERRONEOUS (-183.6 eV, likely total energy not properly referenced)",
+    "Al2O3_Li2S6": "ERRONEOUS (-244.8 eV, likely total energy not properly referenced)",
+    "Fe2O3_all": "MISSING (Fe2O3 surface SCF not converged)"
+  },
+  "data_quality_notes": {
+    "SiO2_Li2S_adsorption": "-4.73 eV is physically reasonable (strong chemisorption)",
+    "other_adsorption_errors": "Large negative values indicate raw total energy differences, not proper adsorption energies. Need E_ads = E(complex) - E(surface) - E(molecule)",
+    "Fe2O3_surface": "SCF did not converge; UKS (unrestricted Kohn-Sham) may need different convergence parameters"
+  }
+}

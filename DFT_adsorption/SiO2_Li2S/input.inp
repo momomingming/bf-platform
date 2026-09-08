@@ -1,0 +1,130 @@
+&GLOBAL
+  PROJECT SiO2_Li2S_ads_opt
+  RUN_TYPE GEO_OPT
+  PRINT_LEVEL MEDIUM
+&END GLOBAL
+
+&FORCE_EVAL
+  METHOD Quickstep
+  &DFT
+    BASIS_SET_FILE_NAME BASIS_MOLOPT
+    POTENTIAL_FILE_NAME GTH_POTENTIALS
+    &MGRID
+      CUTOFF 400
+      REL_CUTOFF 50
+    &END MGRID
+    &QS
+      METHOD GPW
+      EPS_DEFAULT 1.0E-12
+    &END QS
+    &SCF
+      SCF_GUESS ATOMIC
+      EPS_SCF 1.0E-6
+      MAX_SCF 150
+      MAX_DIIS 7
+      &DIAGONALIZATION
+        ALGORITHM STANDARD
+      &END DIAGONALIZATION
+      &MIXING
+        METHOD BROYDEN_MIXING
+        ALPHA 0.4
+        NBROYDEN 8
+      &END MIXING
+    &END SCF
+    &XC
+      &XC_FUNCTIONAL PBE
+      &END XC_FUNCTIONAL
+      &VDW_POTENTIAL
+        POTENTIAL_TYPE PAIR_POTENTIAL
+        &PAIR_POTENTIAL
+          PARAMETER_FILE_NAME dftd3.dat
+          TYPE DFTD3(BJ)
+          REFERENCE_FUNCTIONAL PBE
+        &END PAIR_POTENTIAL
+      &END VDW_POTENTIAL
+    &END XC
+    &KPOINTS
+      SCHEME MONKHORST-PACK 2 2 1
+    &END KPOINTS
+  &END DFT
+  &SUBSYS
+    &CELL
+      A     4.916000     0.000000     0.000000
+      B    -2.458000     4.257381     0.000000
+      C     0.000000     0.000000    27.025000
+      PERIODIC XYZ
+    &END CELL
+    &COORD
+      Si     -1.154523      1.999692     12.938599
+      Si      1.303477      2.257689     11.136933
+      Si     -1.154523      1.999692     11.136933
+      Si      1.303477      2.257689      9.335266
+      Si      2.309045      0.000000     12.938599
+      Si      2.309045      0.000000      9.335266
+      O      0.295697      1.760427     12.294864
+      O      0.785577      3.633249     10.493197
+      O      3.243577      0.624132     11.780668
+      O      2.753697      2.496954      9.979001
+      O      1.376726      1.136295      8.177335
+      O     -1.081274      3.121086      8.691530
+      Si     -1.154523      1.999692     18.343599
+      Si      1.303477      2.257689     16.541933
+      Si     -1.154523      1.999692     16.541933
+      Si      1.303477      2.257689     14.740266
+      Si      2.309045      0.000000     18.343599
+      Si      2.309045      0.000000     14.740266
+      O      0.295697      1.760427     17.699864
+      O      0.785577      3.633249     15.898197
+      O      3.243577      0.624132     17.185668
+      O      2.753697      2.496954     15.384001
+      O      1.376726      1.136295     13.582335
+      O     -1.081274      3.121086     14.096530
+      Li      1.229000      2.128690     19.343599
+      S      1.229000      2.128690     20.843599
+      Li      1.229000      2.128690     22.343599
+    &END COORD
+    &KIND Li
+      ELEMENT Li
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE
+    &END KIND
+    &KIND O
+      ELEMENT O
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q6
+    &END KIND
+    &KIND S
+      ELEMENT S
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q6
+    &END KIND
+    &KIND Si
+      ELEMENT Si
+      BASIS_SET DZVP-MOLOPT-SR-GTH
+      POTENTIAL GTH-PBE-q4
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL
+
+&MOTION
+  &GEO_OPT
+    OPTIMIZER BFGS
+    MAX_ITER 300
+    MAX_DR 3.0E-3
+    MAX_FORCE 4.5E-4
+    RMS_DR 1.5E-3
+    RMS_FORCE 3.0E-4
+  &END GEO_OPT
+  &PRINT
+    &TRAJECTORY
+      &EACH
+        GEO_OPT 1
+      &END EACH
+    &END TRAJECTORY
+    &FORCES
+      &EACH
+        GEO_OPT 1
+      &END EACH
+    &END FORCES
+  &END PRINT
+&END MOTION

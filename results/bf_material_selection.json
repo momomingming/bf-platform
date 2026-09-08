@@ -1,0 +1,101 @@
+{
+  "bf_properties": {
+    "composition": "SiO₂(52-56%), Al₂O₃(14-16%), Fe₂O₃(10-14%), CaO(8-10%), MgO(4-6%), Na₂O(2-4%), TiO₂(1-2%)",
+    "surface_groups": [
+      "Si-OH",
+      "Al-OH",
+      "Fe-OH"
+    ],
+    "thermal_stability": "700°C",
+    "density": "2.66 g/cm³",
+    "diameter": "7-15 μm",
+    "surface_charge": "负电性(pH>4)"
+  },
+  "recommended_materials": [
+    {
+      "rank": 1,
+      "material": "TiO₂",
+      "modification_mode": "纳米颗粒涂覆",
+      "processing_method": "溶胶-凝胶/水热",
+      "rationale": "极性Ti-OH与BF表面Si-OH/Al-OH形成强氢键网络; 对Li₂S₄/Li₂S₆化学吸附能约-1.2~-2.5 eV; 工业成熟度高",
+      "shuttle_factor_mean": 0.10427272727272728,
+      "bf_compatibility_score": 0.923
+    },
+    {
+      "rank": 2,
+      "material": "MnO₂",
+      "modification_mode": "纳米片/纳米花",
+      "processing_method": "水热原位生长",
+      "rationale": "Mn-O极性键强锚定多硫化物; 催化加速Li₂S₈→Li₂S₆→Li₂S转化; 与BF表面-OH化学键合",
+      "shuttle_factor_mean": 0.06551052631578946,
+      "bf_compatibility_score": 0.873
+    },
+    {
+      "rank": 3,
+      "material": "PDA(聚多巴胺)",
+      "modification_mode": "超薄仿生涂层",
+      "processing_method": "自聚合(室温)",
+      "rationale": "邻苯二酚/胺基双重锚定; 可在任何BF表面均匀涂覆; 厚度可控(5-50nm); 低温工艺保护BF结构",
+      "shuttle_factor_mean": 0.09447142857142857,
+      "bf_compatibility_score": 0.859
+    },
+    {
+      "rank": 4,
+      "material": "CeO₂",
+      "modification_mode": "纳米颗粒",
+      "processing_method": "浸渍-煅烧",
+      "rationale": "氧空位提供强化学吸附位点; Ce³⁺/Ce⁴⁺氧化还原催化多硫化物转化; 热稳定性优异(>700°C)",
+      "shuttle_factor_mean": 0.09536315789473684,
+      "bf_compatibility_score": 0.864
+    },
+    {
+      "rank": 5,
+      "material": "MXene(Ti₃C₂)",
+      "modification_mode": "2D片层包覆",
+      "processing_method": "真空辅助抽滤",
+      "rationale": "Ti-C极性表面化学吸附; 高电子导电性促进电化学反应; 层间可容纳硫膨胀",
+      "shuttle_factor_mean": 0.1136375,
+      "bf_compatibility_score": 0.795
+    },
+    {
+      "rank": 6,
+      "material": "Al₂O₃",
+      "modification_mode": "ALD超薄涂层",
+      "processing_method": "ALD/溶胶-凝胶",
+      "rationale": "与BF中Al₂O₃组分同源; ALD可实现原子级精确控制; 主要作为界面稳定层",
+      "shuttle_factor_mean": 0.08535384615384614,
+      "bf_compatibility_score": 0.964
+    },
+    {
+      "rank": 7,
+      "material": "g-C₃N₄",
+      "modification_mode": "2D纳米片",
+      "processing_method": "超声剥离+浸渍",
+      "rationale": "丰富吡啶N/吡咯N位点强吸附多硫化物; 2D形态适合BF表面包覆; 热稳定性好(>500°C)",
+      "shuttle_factor_mean": 0.1325,
+      "bf_compatibility_score": 0.81
+    },
+    {
+      "rank": 8,
+      "material": "TiN",
+      "modification_mode": "纳米颗粒",
+      "processing_method": "磁控溅射/浸渍",
+      "rationale": "极性Ti-N键强吸附; 金属级导电性; 与BF中TiO₂组分关联; 热稳定性优异",
+      "shuttle_factor_mean": 0.09062307692307693,
+      "bf_compatibility_score": 0.826
+    }
+  ],
+  "dft_adsorption_cleaned": {
+    "SiO2_Li2S": -4.734,
+    "SiO2_Li2S4": -170.643,
+    "SiO2_Li2S6": -256.223,
+    "Al2O3_Li2S4": -183.644,
+    "Al2O3_Li2S6": -244.761
+  },
+  "data_cleaning_summary": {
+    "liquid_original": 650,
+    "liquid_cleaned": 626,
+    "solid_original": 600,
+    "solid_cleaned": 571
+  }
+}

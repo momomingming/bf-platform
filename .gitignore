@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CP2K outputs
+*.out
+*.xyz
+*-1.restart
+*.wfn
+*.wfn.bak
+*.cube
+*.mol
+*.band
+*.dos
+*-pos-1.xyz
+*-frc-1.xyz
+*-vel-1.xyz
+*.restart
+
+# LAMMPS outputs
+log.lammps
+*.dump
+*.dump.*
+screen.*
+log.*.lammps
+
+# Large data (uncomment if needed)
+# *.traj
+# *.nc
+# *.h5
+
+# CP2K / Bohrium large intermediate outputs (regenerate from inputs)
+# Single *.kp wavefunction restart files can reach 100-300 MB each
+*.kp
+*.kp.bak-*
+*.kp.bak-1
+
+# Per-system CP2K / LAMMPS run directories
+results/run_*/
+results/Al2O3_*/
+results/Fe2O3_*/
+results/MoS2_*/
+results/Li2S_*/
+results/SiO2_*/
+results/MD_*/
+
+# Per-task archive files (Bohrium per-task outputs)
+results/**/*.zip
+
+# Generic backups
+*.bak
+
+# Streamlit
+.streamlit/secrets.toml

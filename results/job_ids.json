@@ -1,0 +1,22 @@
+{
+  "SiO2_bulk_v2": "81f4c11e0d1b40208626a83dfe2d82d5",
+  "Al2O3_bulk_v2": "c28a73e678d6402aa9b9b02751786a45",
+  "Fe2O3_bulk_v3": "45921e2cbdf14830b34db4deaaa7fd1b",
+  "Li2S_mol_v3": "306804a65d4d405381fc44435212e4e1",
+  "Li2S4_mol_v4": "3120449322b54940b517197a8d65f30d",
+  "Li2S6_mol_v4": "b40f0da5ca1e41c6ae5c55ce7236818a",
+  "SiO2_001_v2": "61e0f0b0805144c9a035e13a2c308969",
+  "Al2O3_001_v2": "a0db9fa230a14c0eb59b65c3b8ac5080",
+  "Fe2O3_001_v3_uks": "5dea5633231149ba9bd3af64fbc92500",
+  "SiO2_Li2S_v3": "623cb17aa0574d2db55dfea1b120955b",
+  "SiO2_Li2S4_v3": "5d94a6c0649a4ab7896b02c0a513e289",
+  "SiO2_Li2S6_v3": "792ede4df96e4a36b88ceceb30c0bfbf",
+  "Al2O3_Li2S_v3": "ed940be4c7ca4464a411acedc4ff9af5",
+  "Al2O3_Li2S4_v3": "b7962b17342c476fb6ed9c3737c032d3",
+  "Al2O3_Li2S6_v3": "0bb5de4e922d445ca0e9af3d2f767e83",
+  "Fe2O3_Li2S_v4": "60f44ec7fedf4f07ab34e64aad65e767",
+  "Fe2O3_Li2S4_v4": "9588000dfd5f42cd9c31a2a1a895a7bb",
+  "Fe2O3_Li2S6_v4": "a825c3540a1e465ea0296de45c9ca074",
+  "MD_melt_quench_v2": "681d3b3e11d34f9a9a42bc45c628d41c",
+  "MD_Li_diffusion_v5": "dcab2e69d5124fb2b3348a55b69db0a1"
+}

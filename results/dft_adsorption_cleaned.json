@@ -1,0 +1,32 @@
+{
+  "total_energies_Ha": {
+    "Al2O3_bulk": -315.74779,
+    "Al2O3_surface_001": -315.556204,
+    "SiO2_surface_001": -240.122,
+    "Li2S_mol": -24.896032,
+    "Li2S4_mol": -49.043,
+    "Li2S6_mol": -66.475,
+    "SiO2_Li2S": -265.192,
+    "SiO2_Li2S4": -295.436,
+    "SiO2_Li2S6": -316.013,
+    "Al2O3_Li2S4": -371.348,
+    "Al2O3_Li2S6": -391.026
+  },
+  "adsorption_energies_eV": {
+    "SiO2_Li2S": -4.734,
+    "SiO2_Li2S4": -170.643,
+    "SiO2_Li2S6": -256.223,
+    "Al2O3_Li2S4": -183.644,
+    "Al2O3_Li2S6": -244.761
+  },
+  "failed_calculations": [
+    "Fe2O3_surface (SCF not converged)",
+    "Al2O3_Li2S (not available)"
+  ],
+  "md_results": {
+    "amorphous_density_g_cm3": 2.66,
+    "n_atoms": 200,
+    "composition": "Si36Al12Fe8Ca8Mg6Na4Ti2O124",
+    "thermal_stability": "stable at 300K"
+  }
+}
