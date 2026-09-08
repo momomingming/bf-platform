@@ -46,8 +46,21 @@ Write-Host "=== [3/7] Checking Git ===" -ForegroundColor Cyan
 $gitExe = $null
 try { $gitExe = (Get-Command git -ErrorAction Stop).Source } catch {}
 if (-not $gitExe) {
-    Write-Host "  Git not found. Install from https://git-scm.com/download/win first." -ForegroundColor Red
-    exit 1
+    Write-Host "  Git not found, installing Git for Windows..." -ForegroundColor Yellow
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $gi = "C:\temp\git-installer.exe"
+    Invoke-WebRequest -Uri "https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe" `
+        -OutFile $gi -UseBasicParsing
+    Start-Process -Wait -FilePath $gi -ArgumentList "/VERYSILENT","/NORESTART","/NOCANCEL","/SP-","/CLOSEAPPLICATIONS"
+    Remove-Item $gi -Force
+    # 刷新 PATH（Git 安装后当前 shell 不会自动更新）
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
+    try { $gitExe = (Get-Command git -ErrorAction Stop).Source }
+    catch {
+        Write-Host "  Git install failed. Please install from https://git-scm.com/download/win" -ForegroundColor Red
+        exit 1
+    }
 }
 Write-Host "  Git: $gitExe" -ForegroundColor Green
 
