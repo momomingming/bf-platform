@@ -65,14 +65,27 @@ if (-not $gitExe) {
 Write-Host "  Git: $gitExe" -ForegroundColor Green
 
 # ===== [4/7] Repository =====
+# 三种情形：
+#   a) 有 .git            -> git pull 更新
+#   b) 无 .git 但代码已就位（如手动上传 zip / git archive 导出）-> 跳过，直接用现有代码
+#   c) 都没有              -> git clone
+# 注意：b) 是常见情形。git archive 导出的 zip 不含 .git，若不加判断会误走 clone
+#        而国内云主机直连 GitHub 常超时，导致整个部署任务挂死。
 Write-Host "=== [4/7] Syncing repository ===" -ForegroundColor Cyan
+$codeMarker = "$AppRoot\lis_battery_platform\app.py"
 if (Test-Path "$AppRoot\.git") {
     Write-Host "  Repo exists, pulling latest..." -ForegroundColor Yellow
     Push-Location $AppRoot; git pull origin main; Pop-Location
+} elseif (Test-Path $codeMarker) {
+    Write-Host "  Code already in place (no .git) - skipping clone." -ForegroundColor Green
+    Write-Host "  To enable git updates later, run: git init; git remote add origin $GithubRepo" -ForegroundColor Gray
 } else {
+    Write-Host "  Cloning from GitHub..." -ForegroundColor Yellow
     if (Test-Path $AppRoot) { Remove-Item $AppRoot -Recurse -Force }
     git clone $GithubRepo $AppRoot
+    if ($LASTEXITCODE -ne 0) { throw "git clone failed - check network or upload code manually" }
 }
+if (-not (Test-Path $codeMarker)) { throw "app.py not found at $codeMarker - deployment cannot continue" }
 Write-Host "  Repo at: $AppRoot" -ForegroundColor Green
 
 # ===== [5/7] Python dependencies =====
