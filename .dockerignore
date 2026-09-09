@@ -1,0 +1,39 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg
+dist/
+build/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DFT / MD 计算输入与中间产物（web app 不用）
+DFT_*/
+MD_*/
+results/
+figures/
+
+# 报告 HTML 与备份
+report.html
+*.bak
+
+# 部署与文档
+DEPLOY.md
+deploy/

@@ -1,0 +1,26 @@
+services:
+  bf-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bf-platform:latest
+    container_name: bf-platform
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      # 持久化数据：Phase 2 启用 SQLite 时改为 ./data:/app/data
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
