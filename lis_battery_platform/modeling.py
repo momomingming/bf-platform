@@ -10,6 +10,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
+from pandas.api.types import is_numeric_dtype
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -46,28 +47,32 @@ SOLID_TARGETS = [
 
 
 def encode_categoricals(df, feature_cols, label_encoders=None):
-    """对分类变量进行Label Encoding"""
+    """对分类变量进行Label Encoding
+
+    注意：pandas >= 3.0 起，字符串列默认 dtype 为 'str'（不再是 'object'），
+    因此不能用 `dtype == 'object'` 判断分类列，统一改用 is_numeric_dtype。
+    """
     df_encoded = df.copy()
     if label_encoders is None:
         label_encoders = {}
         for col in feature_cols:
-            if df[col].dtype == 'object':
-                le = LabelEncoder()
-                df_encoded[col] = le.fit_transform(df[col])
-                label_encoders[col] = le
+            if is_numeric_dtype(df[col]):
+                df_encoded[col] = pd.to_numeric(df[col], errors='coerce')
             else:
-                df_encoded[col] = df[col].values
+                le = LabelEncoder()
+                df_encoded[col] = le.fit_transform(df[col].astype(str))
+                label_encoders[col] = le
     else:
         for col in feature_cols:
             if col in label_encoders:
                 # Handle unseen labels
                 le = label_encoders[col]
                 known = set(le.classes_)
-                df_encoded[col] = df[col].map(
+                df_encoded[col] = df[col].astype(str).map(
                     lambda x: le.transform([x])[0] if x in known else -1
                 )
             else:
-                df_encoded[col] = df[col].values
+                df_encoded[col] = pd.to_numeric(df[col], errors='coerce')
     return df_encoded, label_encoders
 
 
@@ -88,8 +93,15 @@ def train_models(df, feature_cols, target_cols, test_size=0.2, random_state=42):
     """
     # 编码分类变量
     df_enc, label_encoders = encode_categoricals(df, feature_cols)
-    
-    X = df_enc[feature_cols].values.astype(float)
+
+    # 统一转数值（兜底：万一某列仍是字符串，再补一次 Label Encoding）
+    X_df = df_enc[feature_cols].apply(pd.to_numeric, errors='coerce')
+    for col in feature_cols:
+        if X_df[col].isna().any():
+            le = LabelEncoder()
+            X_df[col] = le.fit_transform(df_enc[col].astype(str))
+            label_encoders[col] = le
+    X = X_df.values.astype(float)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
@@ -101,7 +113,9 @@ def train_models(df, feature_cols, target_cols, test_size=0.2, random_state=42):
     results = {}
     
     for target in target_cols:
-        y = df_enc[target].values.astype(float)
+        y = pd.to_numeric(df_enc[target], errors='coerce').values.astype(float)
+        if np.isnan(y).any():
+            y = np.nan_to_num(y, nan=float(np.nanmean(y)))
         
         # 对离子电导率取log以改善分布
         use_log = (target == '离子电导率(mS/cm)')
