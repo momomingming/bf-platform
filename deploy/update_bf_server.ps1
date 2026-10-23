@@ -22,8 +22,8 @@ $zipUrls = @(
 Write-Host '== 0. prepare dirs =='
 New-Item -ItemType Directory -Force -Path $tmp, $dataDir | Out-Null
 
-Write-Host '== 1. install deps openpyxl/xlrd =='
-& C:\Python311\python.exe -m pip install --quiet --upgrade openpyxl xlrd
+Write-Host '== 1. install deps openpyxl/xlrd/pandas =='
+& C:\Python311\python.exe -m pip install --quiet --upgrade openpyxl xlrd pandas
 Write-Host '   deps ok'
 
 Write-Host '== 2. download codeload zip (try multiple mirrors) =='
@@ -69,6 +69,11 @@ if (Test-Path $oldDb) {
 $envLine = "BF_DB_PATH=$newDb"
 & $nssm set $svc AppEnvironmentExtra $envLine
 Write-Host "   $envLine"
+
+Write-Host '== 5.5 seed database (idempotent) =='
+$env:BF_DB_PATH = $newDb
+& C:\Python311\python.exe "$appDir\tools\seed_db.py"
+Write-Host '   seeded'
 
 Write-Host '== 6. restart service =='
 & $nssm restart $svc

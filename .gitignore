@@ -80,3 +80,8 @@ lis_battery_platform/data/
 *.db
 *.db-wal
 *.db-shm
+
+# 文献抽取中间产物（大体积 txt，不入仓）与本地测试库
+lit_extracted/
+*.db
+data/
