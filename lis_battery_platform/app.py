@@ -34,6 +34,7 @@ import model_registry
 from schema import to_model_frame, LIQUID as BT_LIQUID, SOLID as BT_SOLID
 
 MIN_TRAIN_SAMPLES = 30        # 数据库样本达到该规模才允许替换内置训练集
+MIN_DISPLAY_N = 5              # 单指标有效样本低于该值时不展示点估计，改为“样本不足”
 
 # ============================================================
 # 页面配置
@@ -164,11 +165,12 @@ with st.sidebar:
 
     scenario = st.selectbox(
         "🎯 应用场景 / 赛道",
-        ["通用材料筛选", "玄武岩纤维固态电解质（揭榜挂帅重点方向）"],
+        ["通用材料筛选", "玄武岩纤维(BF)体系（重点）", "LDH体系（重点）"],
         index=0,
-        help="选择「玄武岩纤维固态电解质」将直接进入固态体系，"
-             "并把该方向作为平台一等公民场景重点展示。")
+        help="「玄武岩纤维(BF)」与「LDH」均为平台一等公民重点场景："
+             "BF 直接进入固态体系，LDH 进入液态体系，均重点展示。")
     scenario_bf = scenario.startswith("玄武岩")
+    scenario_ldh = scenario.startswith("LDH")
 
     battery_type = st.radio(
         "🔋 电池类型",
@@ -176,9 +178,11 @@ with st.sidebar:
         index=0,
         help="选择电池类型以切换数据集和模型"
     )
-    # 玄武岩纤维固态电解质场景：强制固态体系
+    # 玄武岩纤维(BF)场景：强制固态体系；LDH 场景：强制液态体系
     if scenario_bf:
         battery_type = "固态锂硫电池"
+    if scenario_ldh:
+        battery_type = "液态锂硫电池"
 
     use_registered = st.checkbox(
         "🔖 使用已登记模型版本（可复现）",
@@ -257,17 +261,39 @@ with tab1:
     st.markdown(f'<div class="sub-header">{battery_emoji} {battery_type} — 数据总览</div>', 
                 unsafe_allow_html=True)
     
-    # 统计卡片
+    # 统计卡片（带样本量 n 与 ±标准差，低样本量给出明确提示）
+    n_total = len(current_df)
+    if n_total < MIN_TRAIN_SAMPLES:
+        st.warning(f"当前体系「{battery_type}」真实样本仅 {n_total} 条（<{MIN_TRAIN_SAMPLES}），"
+                    f"预测模型仍使用合成数据兜底；下方均值仅基于现有样本、仅供参考。")
+    elif n_total < 10:
+        st.info(f"当前体系样本 {n_total} 条，统计量已有参考意义，但样本仍偏少。")
+
+    def _stat(col_cn, fmt, unit):
+        s = current_df[col_cn]
+        n = int(s.notna().sum())
+        if n < MIN_DISPLAY_N:
+            return n, "样本不足"
+        mean = s.mean()
+        std = s.std() if n >= 2 else 0.0
+        return n, f"{fmt.format(mean)} ± {fmt.format(std)} {unit}"
+
     cols = st.columns(4)
-    cols[0].metric("样本数", len(current_df))
+    cols[0].metric("样本数", n_total)
     if is_liquid:
-        cols[1].metric("平均初始容量", f"{current_df['初始比容量(mAh/g)'].mean():.0f} mAh/g")
-        cols[2].metric("平均库伦效率", f"{current_df['库伦效率(%)'].mean():.1f}%")
-        cols[3].metric("平均容量保持率", f"{current_df['容量保持率(%)'].mean():.1f}%")
+        n1, v1 = _stat('初始比容量(mAh/g)', '{:.0f}', 'mAh/g')
+        n2, v2 = _stat('库伦效率(%)', '{:.1f}', '%')
+        n3, v3 = _stat('容量保持率(%)', '{:.1f}', '%')
+        cols[1].metric(f"平均初始容量 (n={n1})", v1)
+        cols[2].metric(f"平均库伦效率 (n={n2})", v2)
+        cols[3].metric(f"平均容量保持率 (n={n3})", v3)
     else:
-        cols[1].metric("平均初始容量", f"{current_df['初始比容量(mAh/g)'].mean():.0f} mAh/g")
-        cols[2].metric("平均界面阻抗", f"{current_df['界面阻抗(Ω·cm²)'].mean():.0f} Ω·cm²")
-        cols[3].metric("平均电化学窗口", f"{current_df['电化学窗口(V)'].mean():.2f} V")
+        n1, v1 = _stat('初始比容量(mAh/g)', '{:.0f}', 'mAh/g')
+        n2, v2 = _stat('界面阻抗(Ω·cm²)', '{:.0f}', 'Ω·cm²')
+        n3, v3 = _stat('电化学窗口(V)', '{:.2f}', 'V')
+        cols[1].metric(f"平均初始容量 (n={n1})", v1)
+        cols[2].metric(f"平均界面阻抗 (n={n2})", v2)
+        cols[3].metric(f"平均电化学窗口 (n={n3})", v3)
     
     st.markdown("#### 📈 特征分布")
     
