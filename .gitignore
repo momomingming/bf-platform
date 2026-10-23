@@ -74,3 +74,9 @@ results/**/*.zip
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Runtime database (user-imported data, never commit)
+lis_battery_platform/data/
+*.db
+*.db-wal
+*.db-shm

@@ -23,11 +23,23 @@ from material_kb import (EXTENDED_LIQUID_KB, EXTENDED_SOLID_KB,
                           search_material, search_training_kb,
                           get_recommended_config)
 
+# ---- 导入 / 计算 / 存储 三件套（本次新增）----
+import db
+import importer
+import metrics
+from importer import ImportConfig
+from metrics import CalcConfig
+from panels import render_import_panel, render_metrics_panel, render_model_panel
+import model_registry
+from schema import to_model_frame, LIQUID as BT_LIQUID, SOLID as BT_SOLID
+
+MIN_TRAIN_SAMPLES = 30        # 数据库样本达到该规模才允许替换内置训练集
+
 # ============================================================
 # 页面配置
 # ============================================================
 st.set_page_config(
-    page_title="锂硫电池隔膜材料设计平台",
+    page_title="锂硫电池材料性能预测系统",
     page_icon="🔋",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -104,9 +116,38 @@ def train_all_models(_liquid_df, _solid_df):
     return (liquid_results, liquid_encoders, liquid_scaler,
             solid_results, solid_encoders, solid_scaler)
 
+# ============================================================
+# 侧边栏 — 数据源（数据库开关，需放在数据加载之前）
+# ============================================================
+with st.sidebar:
+    st.markdown("### 🗄️ 数据源")
+    use_db = st.checkbox(
+        "启用数据库（导入的数据参与建模）",
+        value=False,
+        help="勾选后，若某体系在数据库中样本数 ≥ %d，则该体系的分析与建模切换到数据库数据"
+             % MIN_TRAIN_SAMPLES)
+
 # 加载数据和模型
 with st.spinner("正在生成材料数据库..."):
     liquid_df, solid_df = load_data()
+
+_db_note = ""
+if use_db:
+    try:
+        db.init_db()
+        for _bt, _df_key in ((BT_LIQUID, "liquid"), (BT_SOLID, "solid")):
+            _s = db.fetch_samples(_bt)
+            if len(_s) >= MIN_TRAIN_SAMPLES:
+                _frame, _feats, _tgts = to_model_frame(_s, _bt)
+                _valid = [c for c in (_feats + _tgts) if _frame[c].notna().all()]
+                if set(_feats).issubset(set(_valid)):
+                    if _df_key == "liquid":
+                        liquid_df = _frame
+                    else:
+                        solid_df = _frame
+                    _db_note += f"{'液态' if _bt == BT_LIQUID else '固态'}库内 {len(_s)} 条；"
+    except Exception as _e:                       # 数据库异常不得影响主流程
+        _db_note = f"数据库不可用：{_e}"
 
 with st.spinner("正在训练预测模型（首次加载需要约30秒）..."):
     (liquid_results, liquid_encoders, liquid_scaler,
@@ -115,18 +156,35 @@ with st.spinner("正在训练预测模型（首次加载需要约30秒）..."):
 # ============================================================
 # 侧边栏
 # ============================================================
-st.markdown('<div class="main-header">🔋 锂硫电池隔膜填料与基底材料设计平台</div>', 
+st.markdown('<div class="main-header">🔋 锂硫电池材料性能预测系统</div>', 
             unsafe_allow_html=True)
 
 with st.sidebar:
     st.markdown("### ⚙️ 系统设置")
-    
+
+    scenario = st.selectbox(
+        "🎯 应用场景 / 赛道",
+        ["通用材料筛选", "玄武岩纤维固态电解质（揭榜挂帅重点方向）"],
+        index=0,
+        help="选择「玄武岩纤维固态电解质」将直接进入固态体系，"
+             "并把该方向作为平台一等公民场景重点展示。")
+    scenario_bf = scenario.startswith("玄武岩")
+
     battery_type = st.radio(
         "🔋 电池类型",
         ["液态锂硫电池", "固态锂硫电池"],
         index=0,
         help="选择电池类型以切换数据集和模型"
     )
+    # 玄武岩纤维固态电解质场景：强制固态体系
+    if scenario_bf:
+        battery_type = "固态锂硫电池"
+
+    use_registered = st.checkbox(
+        "🔖 使用已登记模型版本（可复现）",
+        value=False,
+        help="勾选后，预测将使用「模型版本」页中标记为激活的已训练模型，"
+             "而非每次启动临时重训的内存模型，保证结果可追溯。")
     
     st.markdown("---")
     st.markdown("### 📊 数据概览")
@@ -159,12 +217,37 @@ current_features = LIQUID_FEATURES if is_liquid else SOLID_FEATURES
 current_targets = LIQUID_TARGETS if is_liquid else SOLID_TARGETS
 battery_emoji = "💧" if is_liquid else "🧊"
 
+# —— 玄武岩纤维固态电解质重点场景提示（决策①：一等公民场景）——
+if scenario_bf:
+    st.info("🪨 **玄武岩纤维固态电解质（BF 固态）重点场景**：已锁定固态体系。"
+            "可在「🗂️ 模型版本」页训练并登记本方向的专属模型；"
+            "开启侧边栏「使用已登记模型版本」后，所有预测均可复现、"
+            "并可回溯到训练所用的数据批次。")
+
+# —— 已登记模型版本覆盖（决策③：可复现预测）——
+current_version_id = None
+if use_registered:
+    _bt_code = BT_LIQUID if is_liquid else BT_SOLID
+    _blob = model_registry.load_active(_bt_code)
+    if _blob:
+        current_results = _blob["results"]
+        current_encoders = _blob["label_encoders"]
+        current_scaler = _blob["scaler"]
+        current_features = _blob["feature_cols"]
+        current_targets = _blob["target_cols"]
+        current_version_id = _blob["meta"]["version_id"]
+        st.sidebar.success(f"🔖 已加载已登记模型：{current_version_id}")
+    else:
+        st.sidebar.warning("未找到当前体系（%s）的激活模型版本，仍使用内存临时模型。"
+                           % ("液态" if is_liquid else "固态"))
+
 # ============================================================
 # 主标签页
 # ============================================================
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 数据总览", "🤖 模型分析", "🎯 性能预测",
-    "🔍 预测vs实测", "⚖️ 材料对比", "🧪 自定义材料分析"
+    "🔍 预测vs实测", "⚖️ 材料对比", "🧪 自定义材料分析",
+    "📥 数据导入", "🧮 指标计算", "🗂️ 模型版本"
 ])
 
 # ============================================================
@@ -208,12 +291,12 @@ with tab1:
                                 color_discrete_sequence=['#4361ee'],
                                 title=f"{selected_dist} 分布")
         fig_hist.update_layout(bargap=0.05)
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width="stretch")
     with col2:
         fig_box = px.box(current_df, y=selected_dist,
                         color_discrete_sequence=['#e74c3c'],
                         title=f"{selected_dist} 箱线图")
-        st.plotly_chart(fig_box, use_container_width=True)
+        st.plotly_chart(fig_box, width="stretch")
     
     # 分类统计
     st.markdown("#### 🏷️ 材料分布统计")
@@ -225,41 +308,41 @@ with tab1:
             fig_cat = px.pie(values=cat_counts.values, names=cat_counts.index,
                            title="填料类别分布", hole=0.3,
                            color_discrete_sequence=px.colors.qualitative.Set2)
-            st.plotly_chart(fig_cat, use_container_width=True)
+            st.plotly_chart(fig_cat, width="stretch")
         with col2:
             sub_counts = current_df['基底材料'].value_counts().head(8)
             fig_sub = px.bar(x=sub_counts.values, y=sub_counts.index, orientation='h',
                            title="基底材料分布(Top 8)",
                            color_discrete_sequence=['#2ecc71'])
             fig_sub.update_layout(yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig_sub, use_container_width=True)
+            st.plotly_chart(fig_sub, width="stretch")
         with col3:
             elec_counts = current_df['电解液体系'].value_counts()
             fig_elec = px.pie(values=elec_counts.values, names=elec_counts.index,
                             title="电解液体系分布", hole=0.3,
                             color_discrete_sequence=px.colors.qualitative.Pastel)
-            st.plotly_chart(fig_elec, use_container_width=True)
+            st.plotly_chart(fig_elec, width="stretch")
     else:
         with col1:
             cat_counts = current_df['填料类别'].value_counts()
             fig_cat = px.pie(values=cat_counts.values, names=cat_counts.index,
                            title="填料类别分布", hole=0.3,
                            color_discrete_sequence=px.colors.qualitative.Set2)
-            st.plotly_chart(fig_cat, use_container_width=True)
+            st.plotly_chart(fig_cat, width="stretch")
         with col2:
             sub_counts = current_df['基底/聚合物'].value_counts().head(8)
             fig_sub = px.bar(x=sub_counts.values, y=sub_counts.index, orientation='h',
                            title="基底/聚合物分布(Top 8)",
                            color_discrete_sequence=['#2ecc71'])
             fig_sub.update_layout(yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig_sub, use_container_width=True)
+            st.plotly_chart(fig_sub, width="stretch")
         with col3:
             filler_counts = current_df['填料类型'].value_counts().head(10)
             fig_fill = px.bar(x=filler_counts.values, y=filler_counts.index, orientation='h',
                             title="填料类型分布(Top 10)",
                             color_discrete_sequence=['#9b59b6'])
             fig_fill.update_layout(yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig_fill, use_container_width=True)
+            st.plotly_chart(fig_fill, width="stretch")
     
     # 相关性矩阵
     st.markdown("#### 🔗 特征相关性矩阵")
@@ -269,11 +352,11 @@ with tab1:
                          color_continuous_scale='RdBu_r', zmin=-1, zmax=1,
                          title="数值特征相关性矩阵")
     fig_corr.update_layout(height=600)
-    st.plotly_chart(fig_corr, use_container_width=True)
+    st.plotly_chart(fig_corr, width="stretch")
     
     # 数据表
     with st.expander("📋 查看原始数据表"):
-        st.dataframe(current_df, use_container_width=True, height=400)
+        st.dataframe(current_df, width="stretch", height=400)
         csv = current_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 下载CSV数据",
@@ -312,7 +395,7 @@ with tab2:
             })
     
     metrics_df = pd.DataFrame(metrics_data)
-    st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+    st.dataframe(metrics_df, width="stretch", hide_index=True)
     
     # 特征重要性
     st.markdown("#### 🎯 特征重要性分析（Random Forest）")
@@ -336,7 +419,7 @@ with tab2:
                            title=f"{selected_target} — 特征重要性 ({best_name})",
                            color='重要性', color_continuous_scale='Blues')
             fig_imp.update_layout(yaxis={'categoryorder': 'total ascending'}, height=450)
-            st.plotly_chart(fig_imp, use_container_width=True)
+            st.plotly_chart(fig_imp, width="stretch")
         
         with col2:
             st.markdown("##### 📝 物理解读")
@@ -371,7 +454,7 @@ with tab2:
                                color_continuous_scale='YlOrRd',
                                title="各目标变量的特征重要性分布")
         fig_heatmap.update_layout(height=400)
-        st.plotly_chart(fig_heatmap, use_container_width=True)
+        st.plotly_chart(fig_heatmap, width="stretch")
 
 # ============================================================
 # TAB 3: 性能预测
@@ -459,8 +542,8 @@ with tab3:
             }
             
             predictions = predict_single(
-                liquid_results, liquid_encoders, liquid_scaler,
-                LIQUID_FEATURES, LIQUID_TARGETS, input_features, 'liquid'
+                current_results, current_encoders, current_scaler,
+                current_features, current_targets, input_features, 'liquid'
             )
         else:
             input_features = {
@@ -478,8 +561,8 @@ with tab3:
             }
             
             predictions = predict_single(
-                solid_results, solid_encoders, solid_scaler,
-                SOLID_FEATURES, SOLID_TARGETS, input_features, 'solid'
+                current_results, current_encoders, current_scaler,
+                current_features, current_targets, input_features, 'solid'
             )
     except Exception as e:
         st.error(f"预测时出错: {e}")
@@ -548,7 +631,7 @@ with tab3:
     
     if comparison_data:
         comp_df = pd.DataFrame(comparison_data)
-        st.dataframe(comp_df, use_container_width=True, hide_index=True)
+        st.dataframe(comp_df, width="stretch", hide_index=True)
 
 # ============================================================
 # TAB 4: 预测vs实测
@@ -608,7 +691,7 @@ with tab4:
             height=550,
             legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
         )
-        st.plotly_chart(fig_pv, use_container_width=True)
+        st.plotly_chart(fig_pv, width="stretch")
         
         # 误差分布
         col1, col2 = st.columns(2)
@@ -631,7 +714,7 @@ with tab4:
                 xaxis_title="预测误差 (预测值 - 实际值)",
                 yaxis_title="频次"
             )
-            st.plotly_chart(fig_err, use_container_width=True)
+            st.plotly_chart(fig_err, width="stretch")
         
         with col2:
             # 相对误差
@@ -646,7 +729,7 @@ with tab4:
                             annotation_text="10%误差线")
             fig_rel.add_vline(x=20, line_dash="dash", line_color="orange",
                             annotation_text="20%误差线")
-            st.plotly_chart(fig_rel, use_container_width=True)
+            st.plotly_chart(fig_rel, width="stretch")
         
         # 统计指标
         st.markdown("#### 📊 模型评估统计")
@@ -677,7 +760,7 @@ with tab4:
                 '数据集': ['训练集'] * len(y_train) + ['测试集'] * len(y_test)
             })
             st.dataframe(pv_data.sort_values('相对误差(%)', ascending=False), 
-                        use_container_width=True, height=400)
+                        width="stretch", height=400)
 
 # ============================================================
 # TAB 5: 材料对比
@@ -868,7 +951,7 @@ with tab5:
             height=500,
             legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99)
         )
-        st.plotly_chart(fig_compare, use_container_width=True)
+        st.plotly_chart(fig_compare, width="stretch")
         
         # 详细对比表
         st.markdown("#### 📋 详细对比数据表")
@@ -894,7 +977,7 @@ with tab5:
             detail_rows.append(detail_row)
         
         detail_df = pd.DataFrame(detail_rows)
-        st.dataframe(detail_df, use_container_width=True, hide_index=True)
+        st.dataframe(detail_df, width="stretch", hide_index=True)
         
         # 雷达图对比
         st.markdown("#### 🎯 多维性能雷达图")
@@ -937,7 +1020,7 @@ with tab5:
             title="多维性能雷达图（归一化）",
             height=500
         )
-        st.plotly_chart(fig_radar, use_container_width=True)
+        st.plotly_chart(fig_radar, width="stretch")
 
 # ============================================================
 # TAB 6: 自定义材料分析
@@ -1152,7 +1235,7 @@ with tab6:
 
             # ─── 预测按钮 ───
             if st.button("🔮 运行性能预测", key="cust_predict_btn",
-                         type="primary", use_container_width=True):
+                         type="primary", width="stretch"):
                 try:
                     # 确定编码用的材料名和类别
                     if sel_is_ext:
@@ -1322,7 +1405,7 @@ with tab6:
                                     yanchor="bottom", y=-0.18,
                                     xanchor="center", x=0.5))
                     st.plotly_chart(fig_cust_radar,
-                                   use_container_width=True)
+                                   width="stretch")
 
                     # ─── 性能排名定位 ───
                     st.markdown("#### 📈 性能排名定位")
@@ -1348,7 +1431,7 @@ with tab6:
                             '评级': stars,
                         })
                     st.dataframe(pd.DataFrame(rank_rows),
-                                 use_container_width=True,
+                                 width="stretch",
                                  hide_index=True)
 
                     # ─── 排名柱状图 ───
@@ -1370,7 +1453,7 @@ with tab6:
                         yaxis_title='超越数据库样本 (%)',
                         yaxis_range=[0, 105], height=380)
                     st.plotly_chart(fig_rank,
-                                   use_container_width=True)
+                                   width="stretch")
 
                     # ─── 推荐方案报告 ───
                     if sel_is_ext:
@@ -1452,7 +1535,7 @@ with tab6:
             overview_rows.append(row)
 
         st.dataframe(pd.DataFrame(overview_rows),
-                     use_container_width=True, hide_index=True,
+                     width="stretch", hide_index=True,
                      height=min(400, 36 * len(overview_rows) + 38))
 
         st.info("👆 在上方搜索框输入材料名称即可开始分析。"
@@ -1460,12 +1543,39 @@ with tab6:
 
 
 # ============================================================
+# TAB 7: 数据导入
+# ============================================================
+with tab7:
+    try:
+        render_import_panel()
+    except Exception as e:                        # noqa: BLE001
+        st.error(f"导入面板加载失败：{type(e).__name__}: {e}")
+
+# ============================================================
+# TAB 8: 指标计算
+# ============================================================
+with tab8:
+    try:
+        render_metrics_panel(default_is_liquid=is_liquid)
+    except Exception as e:                        # noqa: BLE001
+        st.error(f"计算面板加载失败：{type(e).__name__}: {e}")
+
+# ============================================================
+# TAB 9: 模型版本（可复现 / 可回溯）
+# ============================================================
+with tab9:
+    try:
+        render_model_panel()
+    except Exception as e:                        # noqa: BLE001
+        st.error(f"模型版本面板加载失败：{type(e).__name__}: {e}")
+
+# ============================================================
 # 页脚
 # ============================================================
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #888; font-size: 0.85rem;">
-    🔋 锂硫电池隔膜填料与适配基底材料设计平台 | 
+    🔋 锂硫电池材料性能预测系统 | 
     数据基于文献物理关系编码生成 (1250+样本) | 
     模型: Random Forest / Gradient Boosting / Ridge Regression | 
     可解释性优先

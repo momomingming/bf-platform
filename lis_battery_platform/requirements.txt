@@ -5,3 +5,5 @@ plotly>=5.18.0
 pandas>=2.0.0
 numpy>=1.24.0
 kaleido>=0.2.1
+openpyxl>=3.1.0      # Excel(xlsx) 导入必需
+xlrd>=2.0.1          # 旧版 Excel(xls) 导入（可选）
