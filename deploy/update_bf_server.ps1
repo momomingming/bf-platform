@@ -1,8 +1,6 @@
 # ============================================================
-# bf-platform server update script (ASCII-only, no encoding issues)
+# bf-platform server update script (ASCII-only, multi-mirror download)
 # Run inside server PowerShell (admin).
-# Flow: install deps -> download codeload zip (gh-proxy) -> robocopy /E overwrite (keep logs)
-#       -> set BF_DB_PATH persistent -> nssm restart -> selftest + health check
 # ============================================================
 $ErrorActionPreference = 'Stop'
 
@@ -11,10 +9,15 @@ $appDir  = 'C:\apps\bf-platform'
 $dataDir = 'C:\apps\bf-platform\data'
 $tmp     = 'C:\apps\update'
 $zip     = "$tmp\bf.zip"
-$url     = 'https://gh-proxy.com/https://codeload.github.com/momomingming/bf-platform/zip/refs/heads/main'
 
-# nssm: prefer PATH, else common full path
 $nssm = if (Get-Command nssm -ErrorAction SilentlyContinue) { 'nssm' } else { 'C:\tools\nssm\nssm.exe' }
+
+# try multiple mirrors in order; use the first that returns a real zip
+$zipUrls = @(
+  'https://codeload.github.com/momomingming/bf-platform/zip/refs/heads/main',
+  'https://ghproxy.net/https://codeload.github.com/momomingming/bf-platform/zip/refs/heads/main',
+  'https://gh-proxy.com/https://codeload.github.com/momomingming/bf-platform/zip/refs/heads/main'
+)
 
 Write-Host '== 0. prepare dirs =='
 New-Item -ItemType Directory -Force -Path $tmp, $dataDir | Out-Null
@@ -23,11 +26,18 @@ Write-Host '== 1. install deps openpyxl/xlrd =='
 & C:\Python311\python.exe -m pip install --quiet --upgrade openpyxl xlrd
 Write-Host '   deps ok'
 
-Write-Host '== 2. download codeload zip (gh-proxy) =='
-Invoke-WebRequest -Uri $url -OutFile $zip -TimeoutSec 600
-$size = (Get-Item $zip).Length
-if ($size -lt 100KB) { throw "download too small ($size bytes), gh-proxy may have returned an error page" }
-Write-Host "   downloaded $([Math]::Round($size/1KB,1)) KB"
+Write-Host '== 2. download codeload zip (try multiple mirrors) =='
+$ok = $false
+foreach ($u in $zipUrls) {
+  Write-Host "   trying $u"
+  try {
+    Invoke-WebRequest -Uri $u -OutFile $zip -TimeoutSec 120 -ErrorAction Stop
+    $sz = (Get-Item $zip).Length
+    if ($sz -ge 100KB) { $ok = $true; Write-Host "   downloaded $([Math]::Round($sz/1KB,1)) KB from $u"; break }
+    else { Write-Host "   too small ($sz), try next" }
+  } catch { Write-Host "   failed: $_" }
+}
+if (-not $ok) { throw 'all mirrors failed to download zip' }
 
 Write-Host '== 3. extract =='
 Expand-Archive -Path $zip -DestinationPath $tmp -Force
