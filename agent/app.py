@@ -1,5 +1,5 @@
 """
-硫芯·LitAgent —— 锂硫电池科研智能体（Streamlit 交互界面）
+硫芯LitAgent：锂硫电池科研智能体（Streamlit 交互界面）
 ===========================================================
 运行：
     cd agent
@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import agent_core as core
 from agent_core import run_agent
 
-st.set_page_config(page_title="硫芯·LitAgent 锂硫电池科研智能体", page_icon="🪨", layout="wide")
+st.set_page_config(page_title="硫芯LitAgent：锂硫电池科研智能体", page_icon="🪨", layout="wide")
 
 st.markdown("""
 <style>
@@ -27,7 +27,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="big-title">🪨 硫芯·LitAgent ｜ 锂硫电池科研智能体</div>',
+st.markdown('<div class="big-title">🪨 硫芯LitAgent：锂硫电池科研智能体</div>',
             unsafe_allow_html=True)
 
 # ---------- 侧边栏 ----------
@@ -99,4 +99,4 @@ if not st.session_state["history"]:
     st.info("在上方输入你的问题，或点左侧示例开始。无需联网、无需密钥即可运行（LLM 为可选增强）。")
 
 st.markdown("---")
-st.caption("硫芯·LitAgent ｜ 第四届 AIGC 大赛 · 智能体创意应用 ｜ 预测基于文献物理关系编码的代理模型，用于方案比选而非绝对标定。")
+st.caption("硫芯LitAgent：第四届 AIGC 大赛 · 智能体创意应用 ｜ 预测基于文献物理关系编码的代理模型，用于方案比选而非绝对标定。")
