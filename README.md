@@ -145,6 +145,10 @@ streamlit run app.py
 - Feature importance analysis
 - Interactive Plotly visualizations
 
+> **数据与方法说明（重要）**：`lis_battery_platform` 中的预测模型在**基于文献物理关系编码生成的合成数据集**（约 1250 条，液态 650 + 固态 600）上训练，用于算法演示、方案比选与教学，**并非实验实测数据**；界面与文档给出的 R²/MAE 为模型对生成数据的拟合指标，不代表对真实电池的预测精度。实际 DFT/MD 计算结果见 `results/` 与 `figures/`。
+
+> **目录说明**：除上表外，仓库实际还包含 `DFT_MoS2/`、`MD_MoS2_BF/`（MoS₂ 对比体系）、`lit_extracted/`、`lit_samples/`（文献库）、`tools/`、`docs/`、`deploy/`、`agent/`（锂硫科研智能体）等目录。
+
 ---
 
 ## 🚀 How to Use
