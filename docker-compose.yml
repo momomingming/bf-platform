@@ -10,8 +10,11 @@ services:
       - "8501:8501"
     environment:
       - TZ=Asia/Shanghai
+      # 必须显式指定：否则 DB 与模型产物落在容器内层，rebuild 即丢
+      - BF_DB_PATH=/app/data/platform.db
+      - BF_MODELS_DIR=/app/data/models
     volumes:
-      # 持久化数据：Phase 2 启用 SQLite 时改为 ./data:/app/data
+      # 持久化数据：SQLite 库 + 模型产物
       - ./data:/app/data
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
