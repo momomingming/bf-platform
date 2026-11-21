@@ -1,5 +1,5 @@
 """
-硫芯·LitAgent —— 锂硫电池科研智能体（核心编排逻辑，无 Streamlit 依赖）
+硫芯LitAgent：锂硫电池科研智能体（核心编排逻辑，无 Streamlit 依赖）
 ========================================================================
 复用父目录 lis_battery_platform 的 ML 预测引擎与材料知识库：
   - modeling.train_models / predict_single  （性能预测）
