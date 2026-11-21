@@ -43,6 +43,14 @@ log "step 3/5: install python3.11 and build tools inside the rootfs"
 # inside a chroot, so write a real Aliyun VPC resolver instead.
 printf 'nameserver %s\n' "$DNS" > "$ROOTFS/etc/resolv.conf"
 
+# debootstrap only writes the base suite; python3.11 lives in universe of
+# jammy-updates, so the pocket has to be added explicitly.
+cat > "$ROOTFS/etc/apt/sources.list" <<EOF
+deb $MIRROR $SUITE main restricted universe multiverse
+deb $MIRROR $SUITE-updates main restricted universe multiverse
+deb $MIRROR $SUITE-security main restricted universe multiverse
+EOF
+
 mount --bind /proc "$ROOTFS/proc"
 mount --bind /sys "$ROOTFS/sys"
 mount --bind /dev "$ROOTFS/dev"
