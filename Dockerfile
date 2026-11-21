@@ -1,4 +1,5 @@
-FROM python:3.11-slim
+ARG BASE_IMAGE=python:3.11-slim
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="momomingming"
 LABEL description="Li-S battery basalt fiber ML prediction platform"
@@ -10,6 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# pip index override: set PIP_INDEX_URL to an internal mirror on air-gapped VPCs
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_TRUSTED_HOST=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 
 # Python deps first (better layer caching)
 COPY lis_battery_platform/requirements.txt ./requirements.txt
