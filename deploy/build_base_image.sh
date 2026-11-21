@@ -15,6 +15,8 @@ SUITE="${SUITE:-jammy}"
 ROOTFS="${ROOTFS:-/root/litagent-rootfs}"
 TAG="${BASE_IMAGE_TAG:-litagent-base:py311}"
 DNS="${DNS_SERVER:-100.100.2.136}"
+PYPI_MIRROR="${PYPI_MIRROR:-http://mirrors.cloud.aliyuncs.com/pypi/simple/}"
+PIP_TRUSTED="${PIP_TRUSTED_HOST:-mirrors.cloud.aliyuncs.com}"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -51,11 +53,14 @@ deb $MIRROR $SUITE-updates main restricted universe multiverse
 deb $MIRROR $SUITE-security main restricted universe multiverse
 EOF
 
+# Stale bind mounts from an interrupted run would be stacked again here and
+# would end up inside the imported image, so drop them first.
+umount -R -l "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/dev" 2>/dev/null || true
 mount --bind /proc "$ROOTFS/proc"
 mount --bind /sys "$ROOTFS/sys"
 mount --bind /dev "$ROOTFS/dev"
 cleanup() {
-  umount "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/dev" 2>/dev/null || true
+  umount -R -l "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/dev" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -66,12 +71,27 @@ chroot "$ROOTFS" apt-get clean
 chroot "$ROOTFS" rm -rf /var/lib/apt/lists/*
 
 log "step 4/5: create a python3.11 venv with pip on PATH"
+# The VPC has no outbound route to pypi.org, so pip inside the rootfs must
+# use the Aliyun internal mirror as well.
+cat > "$ROOTFS/etc/pip.conf" <<EOF
+[global]
+index-url = ${PYPI_MIRROR}
+trusted-host = ${PIP_TRUSTED}
+timeout = 60
+EOF
 chroot "$ROOTFS" python3.11 -m venv /opt/venv
-chroot "$ROOTFS" /opt/venv/bin/pip install -q --upgrade pip
+chroot "$ROOTFS" env PIP_INDEX_URL="${PYPI_MIRROR}" PIP_TRUSTED_HOST="${PIP_TRUSTED}" \
+  /opt/venv/bin/pip install -q --upgrade pip || log "pip upgrade skipped (mirror or network)"
 chroot "$ROOTFS" ln -sf /opt/venv/bin/pip /usr/local/bin/pip
 chroot "$ROOTFS" ln -sf /opt/venv/bin/pip3 /usr/local/bin/pip3
-chroot "$ROOTFS" ln -sf /opt/venv/bin/python /usr/local/bin/python
-chroot "$ROOTFS" ln -sf /opt/venv/bin/python3 /usr/local/bin/python3
+# A symlinked python resolves to the system interpreter and loses the venv
+# site-packages, so use a wrapper that execs the venv interpreter directly.
+mkdir -p "$ROOTFS/usr/local/bin" || log "cannot create $ROOTFS/usr/local/bin, relying on PATH"
+for exe in python python3; do
+  printf '#!/bin/sh\nexec /opt/venv/bin/%s "$@"\n' "$exe" > "$ROOTFS/usr/local/bin/$exe" \
+    && chmod +x "$ROOTFS/usr/local/bin/$exe" \
+    || log "wrapper for $exe skipped"
+done
 
 log "step 5/5: import into docker"
 cleanup

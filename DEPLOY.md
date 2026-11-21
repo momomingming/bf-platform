@@ -81,6 +81,51 @@ curl -fsS http://127.0.0.1:8501/_stcore/health   # 期望输出 ok
 
 </details>
 
+### 2.3 无 EIP / VPC 内网部署（本次实例走这条）
+
+本实例**没有公网 IP，也没有 NAT 网关**，所以 §2.2 的 `scp` + `git clone` 全部不可用：
+GitHub、Docker Hub、pypi.org 在 VPC 内都出不去。对应的做法是：
+
+| 环节 | 公网方案 | VPC 内网方案 |
+|---|---|---|
+| 传代码 | `scp` / `git clone` | **阿里云云助手 RunCommand 分块传输**（把仓库打成 tar.gz，base64 分片追加到服务器再解包） |
+| 基础镜像 | `docker pull python:3.11-slim` | Docker Hub 拉不到 → 用内部 apt 源 **自建** 等价镜像（`deploy/build_base_image.sh`） |
+| Python 依赖 | pypi.org | `mirrors.cloud.aliyuncs.com/pypi/simple`（写进 `/etc/pip.conf` 与 `PIP_INDEX_URL`） |
+| 访问 | 公网 IP:8501 | **内网 IP:8501**，需 VPN / 云企业网 / 同 VPC 跳板机 |
+
+服务器上只跑这一条（源码已由外部传进 `/opt/litagent`）：
+
+```bash
+bash /opt/litagent/deploy/deploy_alicloud_vpc.sh
+```
+
+脚本会：装/复用 Docker → 写 `daemon.json`（含容器 DNS `100.100.2.136/138`）→ 写 `/etc/pip.conf` →
+基础镜像（优先 `docker pull`，失败则 debootstrap 自建）→ `docker compose build` → 灌库 → 起容器 → 健康检查。
+
+> **容器 DNS 必须显式配**：宿主机的 `resolv.conf` 是 `127.0.0.53`（systemd-resolved 桩），
+> 容器继承后解析不了域名，因此 `daemon.json` 里要写死阿里云 VPC 解析器。
+
+> **基础镜像为什么自建**：`registry-vpc.cn-beijing.aliyuncs.com` 是 ACR 的 VPC 端点，
+> 只能拉 ACR 自己的仓库，匿名 token 没有 Docker Hub 的授权，拉 `python` 会报
+> `pull access denied`。所以用 `debootstrap` 从内网 apt 源装出 Python 3.11，
+> 再 `docker import` 成 `python:3.11-slim`。
+
+### 2.4 无公网时如何从本机把代码送上去
+
+用阿里云 **云助手 RunCommand**（OpenAPI `RunCommand` + `DescribeInvocations`），
+不需要 SSH、不需要公网 IP。本机脚本把仓库打包后按 ~14KB base64 分片追加：
+
+```python
+# 本机（需 pip install alibabacloud_tea_openapi alibabacloud_ecs20140526）
+# 1) 打包（排除大文件与运行期数据）
+cd "D:/锂硫电池/bf-platform"
+tar czf /tmp/bf_payload.tgz --exclude=.git --exclude='DFT_*' --exclude=results \
+    --exclude=figures --exclude=data --exclude=lit_extracted --exclude=__pycache__ .
+# 2) base64 分片下发 → 服务器 base64 -d | tar xzf
+```
+
+服务器端校验：`sha256sum payload.tgz` 必须与本机一致，再解包。
+
 ---
 
 ## 3. 日常更新（一条命令）
@@ -93,6 +138,14 @@ bash /opt/litagent/deploy/update_litagent.sh
 
 它会：备份 `data/platform.db` → `git pull` → `docker compose up -d --build` → 健康检查。
 **不会**动 `data/`，导入和计算结果都不丢。
+
+**VPC 内网实例（无 GitHub 通道）**：服务器上 `git pull` 用不了，改成两步——
+
+```bash
+# 1) 本机：重新打包并分片下发（见 §2.4），服务器解包覆盖 /opt/litagent
+# 2) 服务器：重建 + 灌库 + 重启（备份、自动健康检查）
+bash /opt/litagent/deploy/update_alicloud_vpc.sh
+```
 
 ---
 
@@ -144,6 +197,9 @@ tar czf /opt/litagent/backups/data-$(date +%Y%m%d).tar.gz -C /opt/litagent data
 cd /opt/litagent && git log --oneline -5
 git checkout <上一个 commit> && bash deploy/update_litagent.sh
 ```
+
+> VPC 内网实例没有 GitHub 通道，回滚 = 从本机把旧版本重新打包下发（§2.4），
+> 再跑 `deploy/update_alicloud_vpc.sh`；数据库回滚用 `backups/platform.db.<时间戳>`。
 
 ---
 

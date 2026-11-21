@@ -40,7 +40,7 @@ docker compose version
 
 log "step 2/7: point docker at the VPC registry mirror and a working resolver"
 install -d /etc/docker
-cat > /etc/docker/daemon.json <<EOF
+cat > /etc/docker/daemon.json.new <<EOF
 {
   "registry-mirrors": ["https://${DOCKER_MIRROR}"],
   "dns": ["${DNS_SERVER:-100.100.2.136}", "100.100.2.138"],
@@ -48,7 +48,18 @@ cat > /etc/docker/daemon.json <<EOF
   "log-opts": { "max-size": "10m", "max-file": "3" }
 }
 EOF
-systemctl restart docker
+if [ -f /etc/docker/daemon.json ] && cmp -s /etc/docker/daemon.json.new /etc/docker/daemon.json; then
+  log "daemon.json unchanged, keeping the running docker"
+  rm -f /etc/docker/daemon.json.new
+else
+  mv /etc/docker/daemon.json.new /etc/docker/daemon.json
+  systemctl restart docker || {
+    log "restart failed (cgroup slice), retrying with daemon-reload"
+    systemctl daemon-reload || true
+    systemctl reset-failed docker || true
+    systemctl start docker
+  }
+fi
 systemctl is-active --quiet docker || die "docker failed to restart"
 
 log "step 3/7: point pip at the VPC pypi mirror"

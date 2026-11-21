@@ -12,6 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
+# The air-gapped base image ships its dependencies in /opt/venv; a symlinked
+# /usr/local/bin/python resolves to the system interpreter and misses them,
+# so the venv bin directory has to come first on PATH.
+ENV PATH="/opt/venv/bin:${PATH}"
+
 # pip index override: set PIP_INDEX_URL to an internal mirror on air-gapped VPCs
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
