@@ -252,6 +252,39 @@ python -c "from model_registry import train_and_register; train_and_register('li
 > 同一份代码与版本在两朵云上互为校验。当前数据量下 CPU 已够用，GPU 的价值在
 > 超参搜索、大批量样本与 DFT/MD 计算。
 
+### 8.1 玻尔沙箱直接对外提供服务（免 EIP）
+
+玻尔沙箱自带公网端口映射，**不需要给 ECS 买 EIP**：
+
+```
+https://<端口>-<sandbox_id>.bohr-sandbox.bohrium.com/
+```
+
+`sandbox_id` 是 `lbg sdbx create` 返回的 `default--<template>-<name>-<rand>`。
+平台固定监听 **8501**，所以公网地址就是 `https://8501-<sandbox_id>.bohr-sandbox.bohrium.com`。
+网关会按 `<端口>-<sandbox_id>` 找沙箱并转发到容器端口，用 `uuid` 而不是 `sandbox_id` 会报
+`healthy sandbox ... not found`。
+
+一条命令重建（脚本在 `deploy/`）：
+
+```bash
+python deploy/deploy_bohrium.py                 # 常驻沙箱（--timeout 0），打印公网地址
+python deploy/deploy_bohrium.py --kill <sandbox_id>   # 销毁沙箱
+```
+
+要点：
+
+| 项 | 说明 |
+|---|---|
+| 持久化 | 代码/库/模型放 `/data/litagent`（个人盘，跨沙箱保留），沙箱销毁不丢 |
+| 启动脚本 | `deploy/start_bf_platform.sh`：缺环境就建 `li311`，缺库就灌库，然后拉起 streamlit |
+| 首次启动 | 建 py3.11 环境 + pip 装包约 5~6 分钟，之后秒起 |
+| 计费 | 沙箱按量计费，`--timeout 0` 常驻；不用了就 kill 省额度 |
+| 版本 | 与 ECS 严格对齐（py3.11 / xgboost 3.2.0 / pandas 3.1.1 / numpy 2.4.6） |
+
+**与 ECS 的分工**：ECS 是内网常驻（无公网入口，靠 VPN/跳板机访问）；
+玻尔沙箱负责对外展示与演示，浏览器直接打开公网地址即可。
+
 ---
 
 ## 9. 后续可做
