@@ -40,7 +40,7 @@ MIN_DISPLAY_N = 5              # 单指标有效样本低于该值时不展示�
 # 页面配置
 # ============================================================
 st.set_page_config(
-    page_title="锂硫电池材料性能预测系统",
+    page_title="LSB",
     page_icon="🔋",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -157,7 +157,7 @@ with st.spinner("正在训练预测模型（首次加载需要约30秒）..."):
 # ============================================================
 # 侧边栏
 # ============================================================
-st.markdown('<div class="main-header">🔋 锂硫电池材料性能预测系统</div>', 
+st.markdown('<div class="main-header">🔋 LSB（Lithium-Sulfur Battery）材料性能预测平台</div>', 
             unsafe_allow_html=True)
 
 with st.sidebar:
@@ -1601,7 +1601,7 @@ with tab9:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #888; font-size: 0.85rem;">
-    🔋 锂硫电池材料性能预测系统 | 
+    🔋 LSB（Lithium-Sulfur Battery）材料性能预测平台 | 
     数据基于文献物理关系编码生成 (1250+样本) | 
     模型: Random Forest / Gradient Boosting / Ridge Regression | 
     可解释性优先
