@@ -54,6 +54,19 @@ log "HEAD: $(git -C "$APP_DIR" rev-parse --short HEAD)"
 log "step 4/6: build image"
 mkdir -p "$APP_DIR/data"
 cd "$APP_DIR"
+
+# The host resolver is usually a systemd-resolved stub (127.0.0.53), which is
+# useless inside containers. Give the daemon real resolvers.
+install -d /etc/docker
+cat > /etc/docker/daemon.json <<'EOF'
+{
+  "dns": ["100.100.2.136", "100.100.2.138", "223.5.5.5", "119.29.29.29"],
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
+}
+EOF
+systemctl restart docker
+
 docker compose build
 
 log "step 5/6: seed database (idempotent)"

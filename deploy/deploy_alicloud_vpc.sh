@@ -38,11 +38,12 @@ else
 fi
 docker compose version
 
-log "step 2/7: point docker at the VPC registry mirror"
+log "step 2/7: point docker at the VPC registry mirror and a working resolver"
 install -d /etc/docker
 cat > /etc/docker/daemon.json <<EOF
 {
   "registry-mirrors": ["https://${DOCKER_MIRROR}"],
+  "dns": ["${DNS_SERVER:-100.100.2.136}", "100.100.2.138"],
   "log-driver": "json-file",
   "log-opts": { "max-size": "10m", "max-file": "3" }
 }
@@ -61,10 +62,14 @@ cat /etc/pip.conf
 
 log "step 4/7: fetch the base image"
 BASE_IMAGE="${BASE_IMAGE:-python:3.11-slim}"
-if ! docker pull "$BASE_IMAGE"; then
-  log "pull via mirror failed, trying the direct VPC registry path"
-  BASE_IMAGE="${DOCKER_MIRROR}/library/python:3.11-slim"
-  docker pull "$BASE_IMAGE"
+if docker image inspect "$BASE_IMAGE" >/dev/null 2>&1; then
+  log "base image already present locally"
+elif docker pull "$BASE_IMAGE"; then
+  log "pulled $BASE_IMAGE"
+else
+  log "pull failed, building an equivalent base image from the internal apt mirror"
+  bash "$APP_DIR/deploy/build_base_image.sh"
+  BASE_IMAGE="python:3.11-slim"
 fi
 docker tag "$BASE_IMAGE" python:3.11-slim
 
