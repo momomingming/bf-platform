@@ -203,7 +203,58 @@ git checkout <上一个 commit> && bash deploy/update_litagent.sh
 
 ---
 
-## 8. 后续可做
+## 8. 玻尔沙箱协作（GPU 训练与重计算）
+
+ECS 是 2C2G 无 GPU 的常驻服务机；**玻尔沙箱**按需开一台带卡的云 VM 做重计算，
+本机负责编排：改代码 → 沙箱跑 → 读结果 → 校验 → 同步回 ECS。
+
+```bash
+# 本机：准备 CLI（sdbx 子命令只在 prerelease 版 lbg 上）
+python -m pip install --pre --upgrade lbg
+export BOHR_ACCESS_KEY=...            # 密钥只放本地，不要进仓库/对话
+
+# 创建 GPU 沙箱并挂个人盘
+python sdbx.py create scicomp-4090 --mount-user-storage --timeout 3600 --json
+# 跑命令 / 传文件 / 看日志
+python sdbx.py exec <id> 'nvidia-smi'
+python sdbx.py files write --source ./proj.tgz <id> /root/proj.tgz --json
+python sdbx.py files read <id> /root/out/train.log --output ./train.log
+python sdbx.py kill <id> --json        # 销毁后文件读不到，产物先拉回本地
+```
+
+**版本必须与线上一致**（否则 xgboost 会出现"不报错但预测全错"）：
+
+| 环境 | Python | xgboost | pandas | numpy |
+|---|---|---|---|---|
+| ECS 容器 | 3.11 | 3.2.0 | 3.1.1 | 2.4.6 |
+| 沙箱 `li311` env | 3.11 | 3.2.0 | 3.1.1 | 2.4.6 |
+
+沙箱里复刻同一套版本：
+
+```bash
+mamba create -n li311 python=3.11 -y
+/opt/mamba/envs/li311/bin/pip install numpy==2.4.6 pandas==3.1.1 xgboost==3.2.0 \
+    scikit-learn==1.7.2 openpyxl==3.1.5 "plotly>=5.18.0" "kaleido>=0.2.1"
+```
+
+**GPU 训练开关**：`BF_XGB_DEVICE=cuda` 让 XGBoost 走 GPU（默认仍是 CPU，线上行为不变）：
+
+```bash
+export BF_XGB_DEVICE=cuda
+export BF_DB_PATH=...  BF_MODELS_DIR=...
+python -c "from model_registry import train_and_register; train_and_register('liquid', include_derived=False)"
+```
+
+沙箱默认无出站代理，国内 PyPI 走 `mirrors.aliyun.com` 很快；要拉 GitHub/pypi.org 才需要开代理。
+
+> **实测（2026-11-21）**：4090 沙箱训练 liquid 654 / solid 600 样本各约 22 s；
+> 与 ECS CPU 训练同批数据，R² 差异 ≤ 0.003（GPU hist 与 CPU 精确分裂的正常差异），
+> 同一份代码与版本在两朵云上互为校验。当前数据量下 CPU 已够用，GPU 的价值在
+> 超参搜索、大批量样本与 DFT/MD 计算。
+
+---
+
+## 9. 后续可做
 
 - 域名 + HTTPS：Nginx 反代 80/443 + certbot（需 ICP 备案）
 - 定时备份：`cron` 每日 `tar` 打包 `data/`
