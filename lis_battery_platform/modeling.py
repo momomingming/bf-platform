@@ -2,6 +2,8 @@
 锂硫电池材料预测模型构建模块
 以可解释性优先，使用Random Forest / Gradient Boosting / Linear Regression
 """
+import os
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -136,9 +138,15 @@ def train_models(df, feature_cols, target_cols, test_size=0.2, random_state=42):
         }
         
         if HAS_XGB:
+            # BF_XGB_DEVICE=cuda 启用 GPU 训练（玻尔沙箱等有卡的机器）；
+            # 默认仍是 CPU，线上推理行为不变。
+            xgb_extra = {}
+            if os.environ.get("BF_XGB_DEVICE", "cpu").strip().lower() not in ("", "cpu"):
+                xgb_extra = {"tree_method": "hist", "device": "cuda"}
             models['XGBoost'] = XGBRegressor(
                 n_estimators=200, max_depth=6, learning_rate=0.1,
-                min_child_weight=3, random_state=random_state, verbosity=0
+                min_child_weight=3, random_state=random_state, verbosity=0,
+                **xgb_extra
             )
         
         target_results = {}
