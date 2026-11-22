@@ -268,19 +268,25 @@ https://<端口>-<sandbox_id>.bohr-sandbox.bohrium.com/
 一条命令重建（脚本在 `deploy/`）：
 
 ```bash
-python deploy/deploy_bohrium.py                 # 常驻沙箱（--timeout 0），打印公网地址
-python deploy/deploy_bohrium.py --kill <sandbox_id>   # 销毁沙箱
+python deploy/deploy_bohrium.py                        # 常驻沙箱（--never-timeout），打印公网地址
+python deploy/deploy_bohrium.py --no-keep --timeout 3600   # 按 1 小时自动销毁的临时实例
+python deploy/deploy_bohrium.py --kill <sandbox_id>    # 销毁沙箱
 ```
 
 要点：
 
 | 项 | 说明 |
 |---|---|
+| 常驻参数 | **必须用 `--never-timeout`**：它才会写 `e2b.agents.kruise.io/never-timeout=true` 标记。只传 `--timeout 0` 的沙箱没有该标记，**会被平台默认策略回收掉**（实测约 20 分钟后消失，访问即报 `healthy sandbox ... not found`） |
 | 持久化 | 代码/库/模型放 `/data/litagent`（个人盘，跨沙箱保留），沙箱销毁不丢 |
 | 启动脚本 | `deploy/start_bf_platform.sh`：缺环境就建 `li311`，缺库就灌库，然后拉起 streamlit |
+| 看门狗 | 启动命令外层套 `while` 循环，streamlit 崩了 5 秒后自动拉起 |
 | 首次启动 | 建 py3.11 环境 + pip 装包约 5~6 分钟，之后秒起 |
-| 计费 | 沙箱按量计费，`--timeout 0` 常驻；不用了就 kill 省额度 |
+| 计费 | 沙箱按量计费，`--never-timeout` 常驻；不用了就 kill 省额度 |
 | 版本 | 与 ECS 严格对齐（py3.11 / xgboost 3.2.0 / pandas 3.1.1 / numpy 2.4.6） |
+
+> 沙箱销毁后公网地址（内含 sandbox_id）会失效，重新跑上面的脚本即可拿到新地址；
+> 数据与模型不受影响。
 
 **与 ECS 的分工**：ECS 是内网常驻（无公网入口，靠 VPN/跳板机访问）；
 玻尔沙箱负责对外展示与演示，浏览器直接打开公网地址即可。

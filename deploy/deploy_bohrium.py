@@ -56,7 +56,9 @@ def wait_http(url, timeout=420):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--template", default="scicomp-ml")
-    ap.add_argument("--timeout", default="0", help="0 = 不限时（常驻，按量计费）")
+    ap.add_argument("--timeout", default="0", help="沙箱自动销毁时限（秒）")
+    ap.add_argument("--no-keep", dest="keep", action="store_false", default=True,
+                    help="不常驻：按 --timeout 到点自动销毁")
     ap.add_argument("--kill", default=None, help="销毁指定 sandbox_id")
     args = ap.parse_args()
 
@@ -65,16 +67,22 @@ def main():
         print(f"killed {args.kill}")
         return
 
-    info = bhr_json("create", args.template, "--timeout", args.timeout,
-                    "--mount-user-storage", "--json")
+    # 必须用 --never-timeout：它才会打 never-timeout 标记，
+    # 只传 --timeout 0 的沙箱没有该标记，会被平台默认策略回收掉。
+    create_args = ["create", args.template, "--mount-user-storage"]
+    create_args += ["--never-timeout"] if args.keep else ["--timeout", args.timeout]
+    info = bhr_json(*create_args, "--json")
     sid = info["sandboxID"]
     print(f"sandbox: {sid}")
     print(f"public url: {public_url(sid)}")
 
     bhr("files", "write", "--source", START_SH, sid, "/data/litagent/start.sh", "--json")
-    # 首次启动要建 py3.11 环境（mamba + pip，约 5~6 分钟），给足等待时间
+    # 首次启动要建 py3.11 环境（mamba + pip，约 5~6 分钟），给足等待时间；
+    # 外层 while 做看门狗，streamlit 挂了自动拉起。
     bhr("exec", "--background", sid,
-        "mkdir -p /root/out && /data/litagent/start.sh > /root/out/start.log 2>&1")
+        "mkdir -p /root/out && cd /root && for i in $(seq 1 100000); do "
+        "/data/litagent/start.sh >> /root/out/start.log 2>&1; "
+        "echo '[watchdog] streamlit exited, restarting' >> /root/out/start.log; sleep 5; done")
 
     ok = wait_http(public_url(sid), timeout=900)
     print("health:", "ok" if ok else "check manually")
